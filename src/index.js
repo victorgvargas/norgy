@@ -6,6 +6,7 @@ const connectDB = require("./db/db");
 const port = process.env.PORT;
 const authRoutes = require("./routes/authRoutes");
 const userSchema = require("./schemas/userSchema");
+const { userCountersSchema, globalCountersSchema } = require("./schemas/scoreSchema");
 const { createTable } = require("./utils/sqlFunctions");
 
 const app = express();
@@ -15,9 +16,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/", authRoutes);
 
-createTable(userSchema)
-  .then(() => console.log("Users table verified/created successfully"))
-  .catch((error) => console.error("Error creating users table:", error));
+Promise.all([createTable(userSchema), createTable(userCountersSchema), createTable(globalCountersSchema)])
+  .then(() => console.log("User/Counters tables verified/created successfully"))
+  .catch((error) => console.error("Error creating counters tables:", error));
 
 connectDB();
 

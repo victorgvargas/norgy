@@ -1,7 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const userSchema = require("../schemas/userSchema");
 const { insertRecord, queryRecord } = require("../utils/sqlFunctions");
 
 const generateAccessToken = (userId) => {
