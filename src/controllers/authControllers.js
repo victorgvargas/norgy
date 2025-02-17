@@ -1,41 +1,37 @@
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
-const userSchema = require("../schemas/userSchema");
 const bcrypt = require("bcryptjs");
-const {
-  createTable,
-  checkRecordExists,
-  insertRecord,
-} = require("../utils/sqlFunctions");
+const userSchema = require("../schemas/userSchema");
+const { insertRecord, queryRecord } = require("../utils/sqlFunctions");
 
 const generateAccessToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+const getUserByEmail = async (email) => {
+  const query = `SELECT * FROM users WHERE email = ? LIMIT 1`;
+  const result = await queryRecord(query, [email]);
+  return result[0] || null;
+};
+
 const register = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res
-      .status(400)
-      .json({ error: "Email or Password fields cannot be empty!" });
-    return;
+    return res.status(400).json({ error: "Email or Password fields cannot be empty!" });
   }
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-  const user = {
-    userId: uuidv4(),
-    email,
-    password: hashedPassword,
-  };
+
   try {
-    await createTable(userSchema);
-    const userAlreadyExists = await checkRecordExists("users", "email", email);
-    if (userAlreadyExists) {
-      res.status(409).json({ error: "Email already exists" });
-    } else {
-      await insertRecord("users", user);
-      res.status(201).json({ message: "User created successfully!" });
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ error: "Email already exists" });
     }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = { userId: uuidv4(), email, password: hashedPassword };
+
+    await insertRecord("users", user);
+    res.status(201).json({ message: "User created successfully!" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -44,45 +40,39 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res
-      .status(400)
-      .json({ error: "Email or Password fields cannot be empty!" });
-    return;
+    return res.status(400).json({ error: "Email or Password fields cannot be empty!" });
   }
 
   try {
-    const existingUser = await checkRecordExists("users", "email", email);
-
-    if (existingUser) {
-      if (!existingUser.password) {
-        res.status(401).json({ error: "Invalid credentials" });
-        return;
-      }
-
-      const passwordMatch = await bcrypt.compare(
-        password,
-        existingUser.password
-      );
-
-      if (passwordMatch) {
-        res.status(200).json({
-          userId: existingUser.userId,
-          email: existingUser.email,
-          access_token: generateAccessToken(existingUser.userId),
-        });
-      } else {
-        res.status(401).json({ error: "Invalid credentials" });
-      }
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
+    const existingUser = await getUserByEmail(email);
+    if (!existingUser) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    const passwordMatch = await bcrypt.compare(password, existingUser.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const token = generateAccessToken(existingUser.userId);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.status(200).json({ userId: existingUser.userId, email: existingUser.email, access_token: token });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-module.exports = {
-  register,
-  login,
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  res.status(200).json({ message: "User logged out successfully!" });
 };
 
+module.exports = { register, login, logout };
