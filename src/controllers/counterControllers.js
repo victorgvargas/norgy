@@ -2,7 +2,7 @@ const { queryRecord } = require("../utils/sqlFunctions");
 
 // Get user counters
 const getUserCounters = async (req, res) => {
-  const userId = req.user.userId; // Assume user is authenticated
+  const userId = req.body.userId; // Assume user is authenticated
 
   try {
     const query = "SELECT category, counter_value FROM user_counters WHERE userId = ?";
@@ -64,9 +64,23 @@ const resetGlobalCounters = async (req, res) => {
     }
 };
 
+const resetUserCounters = async (req, res) => {
+  const userId = req.body.userId; // Assume user is authenticated
+
+  try {
+    const resetQuery = "DELETE FROM user_counters WHERE userId = ?";
+    await queryRecord(resetQuery, [userId]);
+
+    res.status(200).json({ message: "User counters reset successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getUserCounters,
   updateUserCounter,
   getGlobalCounters,
+  resetUserCounters,
   resetGlobalCounters
 };
