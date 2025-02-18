@@ -2,7 +2,9 @@ const mysql2 = require("mysql2");
 const config = require("./config");
 
 const connectDB = async () => {
-  const pool = mysql2.createPool(config);
+  const useCloudDB = process.env.DB_URL ? true : false;
+
+  const pool = useCloudDB ? mysql2.createPool(process.env.DB_URL) : mysql2.createPool(config);
 
   pool.getConnection((err, connection) => {
     if (err) {
