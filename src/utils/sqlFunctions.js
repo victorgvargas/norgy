@@ -1,6 +1,8 @@
 const mysql2 = require("mysql2");
 const config = require("../db/config");
-const pool = mysql2.createPool(config);
+
+const useCloudDB = process.env.DB_URL ? true : false;
+const pool = useCloudDB ? mysql2.createPool(process.env.DB_URL) : mysql2.createPool(config);
 
 // Função para criar tabelas
 const createTable = (schema) => {
