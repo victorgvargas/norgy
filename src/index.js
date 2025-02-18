@@ -13,7 +13,7 @@ const scoreRoutes = require("./routes/scoreRoutes");
 const app = express();
 
 app.use(cors({
-  origin: process.env.DB_URL ? 'https://norgy-fe.onrender.com/' : 'http://localhost:3000' ,  // Allow frontend origin
+  origin: process.env.DB_URL ? 'https://norgy-fe.onrender.com' : 'http://localhost:3000' ,  // Allow frontend origin
   credentials: true                 // Allow sending cookies/sessions
 }));
 
