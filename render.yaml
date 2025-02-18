@@ -8,6 +8,6 @@ services:
     startCommand: npm start
     envVars:
       - key: DB_URL
-        value: "mysql://<username>:<password>@<host>:<port>/<database>?ssl-mode=REQUIRED"
+        value: "mysql://avnadmin:AVNS_eioRXQZnw4-lHYLEz74@mysql-3d4fa9f7-norgy.j.aivencloud.com:16785/defaultdb?ssl-mode=REQUIRED"
       - key: PORT
         value: "5000"
