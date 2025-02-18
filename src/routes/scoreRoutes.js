@@ -1,5 +1,5 @@
 const express = require("express");
-const { getUserCounters, updateUserCounter, getGlobalCounters } = require("../controllers/scoreControllers");
+const { getUserCounters, updateUserCounter, getGlobalCounters, resetGlobalCounters } = require("../controllers/counterControllers");
 const router = express.Router();
 
 // Get counters for the logged-in user

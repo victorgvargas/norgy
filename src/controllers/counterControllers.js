@@ -16,8 +16,7 @@ const getUserCounters = async (req, res) => {
 
 // Update user counter (increment or decrement)
 const updateUserCounter = async (req, res) => {
-  const { userId } = req.user;
-  const { category, amount } = req.body; // `amount` can be positive (increment) or negative (decrement)
+  const { userId, category, amount } = req.body; // `amount` can be positive (increment) or negative (decrement)
 
   try {
     // Update user's counter
