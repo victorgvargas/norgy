@@ -13,6 +13,28 @@ const getUserByEmail = async (email) => {
   return result[0] || null;
 };
 
+const getUserById = async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+  }
+
+  try {
+      const query = "SELECT * FROM users WHERE userId = ? LIMIT 1";
+      const result = await queryRecord(query, [userId]);
+
+      if (!result.length) {
+          return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json(result[0]);
+  } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 const register = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -74,4 +96,4 @@ const logout = (req, res) => {
   res.status(200).json({ message: "User logged out successfully!" });
 };
 
-module.exports = { register, login, logout };
+module.exports = { getUserById, register, login, logout };

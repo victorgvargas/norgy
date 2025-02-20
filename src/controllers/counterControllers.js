@@ -14,6 +14,17 @@ const getUserCounters = async (req, res) => {
   }
 };
 
+const getUsersCounters = async (req, res) => {
+  try {
+    const query = "SELECT userId, category, counter_value FROM user_counters";
+    const counters = await queryRecord(query);
+
+    res.status(200).json({ counters });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 // Update user counter (increment or decrement)
 const updateUserCounter = async (req, res) => {
   const { userId, category, amount } = req.body; // `amount` can be positive (increment) or negative (decrement)
@@ -79,6 +90,7 @@ const resetUserCounters = async (req, res) => {
 
 module.exports = {
   getUserCounters,
+  getUsersCounters,
   updateUserCounter,
   getGlobalCounters,
   resetUserCounters,
